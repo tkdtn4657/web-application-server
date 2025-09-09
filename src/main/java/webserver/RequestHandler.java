@@ -3,7 +3,8 @@ package webserver;
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
-import java.util.stream.Stream;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,8 +25,6 @@ public class RequestHandler extends Thread {
         );
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
-            // TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
-//            log.debug("inputStream : {} ");
             DataOutputStream dos = new DataOutputStream(out);
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
             StringBuilder requestData = new StringBuilder();
@@ -40,20 +39,33 @@ public class RequestHandler extends Thread {
             while ((line = reader.readLine()) != null && !line.isEmpty()) {
                 requestData.append(line).append("\n");
             }
-            log.info("RequestData\n{}", requestData);
+//            log.info("RequestData\n{}", requestData);
 
-            byte[] body = Files.readAllBytes(new File("./webapp"+requestUri).toPath());
-            response200Header(dos, body.length);
+            byte[] body = null;
+            String contentType = null;
+            try {
+                File responseFile = new File("./webapp" + requestUri);
+                body = Files.readAllBytes(responseFile.toPath());
+                contentType = contentTypeParser(responseFile.toPath());
+            } catch (NoSuchFileException e){
+                String notFoundText = "notFound";
+                body = notFoundText.getBytes();
+                response404Header(dos, body.length);
+                responseBody(dos, body);
+                return;
+            }
+            response200Header(dos, body.length, contentType);
             responseBody(dos, body);
         } catch (IOException e) {
             log.error(e.getMessage());
+            log.error("data = {}", e.getStackTrace());
         }
     }
 
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
+    private void response200Header(DataOutputStream dos, int lengthOfBodyContent, String contentType) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+            dos.writeBytes("Content-Type: " + contentType + ";charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
@@ -79,5 +91,25 @@ public class RequestHandler extends Thread {
         } catch (IOException e) {
             log.error(e.getMessage());
         }
+    }
+
+    private static String contentTypeParser(Path path) {
+        // 1) OS가 알려주면 사용
+        try {
+            String ct = Files.probeContentType(path);
+            if (ct != null) return ct;
+        } catch (IOException ignore) {}
+
+        // 2) 확장자로 보정
+        String name = path.getFileName().toString().toLowerCase();
+        if (name.endsWith(".html") || name.endsWith(".htm")) return "text/html; charset=utf-8";
+        if (name.endsWith(".css"))  return "text/css; charset=utf-8";
+        if (name.endsWith(".js"))   return "application/javascript; charset=utf-8";
+        if (name.endsWith(".json")) return "application/json; charset=utf-8";
+        if (name.endsWith(".png"))  return "image/png";
+        if (name.endsWith(".jpg") || name.endsWith(".jpeg")) return "image/jpeg";
+        if (name.endsWith(".svg"))  return "image/svg+xml";
+        if (name.endsWith(".ico"))  return "image/x-icon";
+        return "application/octet-stream";
     }
 }
