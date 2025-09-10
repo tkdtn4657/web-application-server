@@ -5,7 +5,10 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
+import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,35 +33,76 @@ public class RequestHandler extends Thread {
             StringBuilder requestData = new StringBuilder();
 
             String line;
-            //first Line Request
             String[] requestFirstLines = reader.readLine().split(" ");
             final String requestMethod = requestFirstLines[0];
             final String requestUri = requestFirstLines[1];
             final String requestProtocol = requestFirstLines[2];
 
+            //first Line Request
+            byte[] body = null;
+            String contentType = null;
+            switch (requestMethod){
+                case "GET" :
+
+                    String pathOnly = null;
+                    if(requestUri.indexOf('?') != -1) {
+                        pathOnly = requestUri.substring(0,requestUri.indexOf('?')-1);
+                        final String queryString = requestUri.substring(requestUri.indexOf('?'));
+                        final String[] parameters = queryString.split("&");
+
+                        Map<String, String> queryStringParsedData = new HashMap<>();
+                        for(int i = 0; i < parameters.length; i++){
+                            String[] keyValue = parameters[i].split("=");
+                            String key = keyValue[0];
+                            String value = keyValue[1];
+                            queryStringParsedData.put(key, value);
+                        }
+
+                        User newUser = new User(
+                                queryStringParsedData.get("userId"),
+                                queryStringParsedData.get("password"),
+                                queryStringParsedData.get("name"),
+                                queryStringParsedData.get("email")
+                        );
+
+                        log.info("userData : {}", newUser);
+                    }
+                    try {
+                        File responseFile = new File("./webapp" + pathOnly != null ?  pathOnly : requestUri);
+                        body = Files.readAllBytes(responseFile.toPath());
+                        contentType = contentTypeParser(responseFile.toPath());
+                    } catch (NoSuchFileException e){
+                        String notFoundText = "notFound";
+                        body = notFoundText.getBytes();
+                        response404Header(dos, body.length);
+                        responseBody(dos, body);
+                        return;
+                    }
+
+                    requestData.append(requestFirstLines[0]).append(" ").append(requestFirstLines[1]).append(" ").append(requestFirstLines[2]).append("\n");
+
+                    response200Header(dos, body.length, contentType);
+                    break;
+                case "POST" :
+                case "PUT" :
+                case "PATCH" :
+                case "DELETE" :
+                default:
+                    String notFoundText = "not Support Method";
+                    body = notFoundText.getBytes();
+                    response404Header(dos, body.length);
+                    break;
+            }
+
             while ((line = reader.readLine()) != null && !line.isEmpty()) {
                 requestData.append(line).append("\n");
             }
-//            log.info("RequestData\n{}", requestData);
 
-            byte[] body = null;
-            String contentType = null;
-            try {
-                File responseFile = new File("./webapp" + requestUri);
-                body = Files.readAllBytes(responseFile.toPath());
-                contentType = contentTypeParser(responseFile.toPath());
-            } catch (NoSuchFileException e){
-                String notFoundText = "notFound";
-                body = notFoundText.getBytes();
-                response404Header(dos, body.length);
-                responseBody(dos, body);
-                return;
-            }
-            response200Header(dos, body.length, contentType);
             responseBody(dos, body);
-        } catch (IOException e) {
+            log.info("RequestData\n{}", requestData);
+        } catch (Exception e) {
             log.error(e.getMessage());
-            log.error("data = {}", e.getStackTrace());
+//            log.error("data = {}", e.getStackTrace());
         }
     }
 
