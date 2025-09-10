@@ -11,6 +11,7 @@ import java.util.Map;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.HttpRequestUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -50,13 +51,7 @@ public class RequestHandler extends Thread {
                         final String queryString = requestUri.substring(requestUri.indexOf('?'));
                         final String[] parameters = queryString.split("&");
 
-                        Map<String, String> queryStringParsedData = new HashMap<>();
-                        for(int i = 0; i < parameters.length; i++){
-                            String[] keyValue = parameters[i].split("=");
-                            String key = keyValue[0];
-                            String value = keyValue[1];
-                            queryStringParsedData.put(key, value);
-                        }
+                        Map<String, String> queryStringParsedData = HttpRequestUtils.parseQueryString(queryString);
 
                         User newUser = new User(
                                 queryStringParsedData.get("userId"),

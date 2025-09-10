@@ -46,6 +46,10 @@ public class HttpRequestUtils {
             return null;
         }
 
+        if(tokens[0].indexOf('?') != -1){
+            tokens[0] = tokens[0].substring(1);
+        }
+
         return new Pair(tokens[0], tokens[1]);
     }
 
