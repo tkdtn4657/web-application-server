@@ -12,6 +12,7 @@ import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
+import util.IOUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -50,8 +51,6 @@ public class RequestHandler extends Thread {
                 case GET:
                     if(requestUri.getQuery() != null){
                         final String queryString = requestUri.getQuery();
-                        final String[] parameters = queryString.split("&");
-
                         Map<String, String> queryStringParsedData = HttpRequestUtils.parseQueryString(queryString);
 
                         User newUser = new User(
