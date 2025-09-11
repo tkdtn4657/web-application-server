@@ -11,8 +11,9 @@ import java.util.Map;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import webserver.http.handler.RequestMethod;
 import util.HttpRequestUtils;
-import util.IOUtils;
+import webserver.http.handler.RequestProcessor;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -47,8 +48,16 @@ public class RequestHandler extends Thread {
             //first Line Request
             byte[] body = null;
             String contentType = null;
+            RequestProcessor prossor = RequestProcessor.getProcessor(requestMethod);
+
+            /* 제거 예정
             switch (requestMethod){
                 case GET:
+
+                    RequestProcessor processor = RequestProcessor.getProcessor(requestMethod, dos);
+
+
+
                     if(requestUri.getQuery() != null){
                         final String queryString = requestUri.getQuery();
                         Map<String, String> queryStringParsedData = HttpRequestUtils.parseQueryString(queryString);
@@ -92,7 +101,7 @@ public class RequestHandler extends Thread {
             while ((line = reader.readLine()) != null && !line.isEmpty()) {
                 requestData.append(line).append("\n");
             }
-
+*/
             responseBody(dos, body);
             log.info("RequestData\n{}", requestData);
         } catch (Exception e) {
