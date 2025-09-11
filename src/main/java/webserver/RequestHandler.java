@@ -5,7 +5,6 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.Map;
 
 import model.User;
@@ -35,16 +34,19 @@ public class RequestHandler extends Thread {
 
             String line;
             String[] requestFirstLines = reader.readLine().split(" ");
-            final String requestMethod = requestFirstLines[0];
+
+            // ex : GET index.html/ HTTP/1.1
+            final String requestMethodString = requestFirstLines[0];
             final String requestUri = requestFirstLines[1];
             final String requestProtocol = requestFirstLines[2];
+
+            RequestMethod requestMethod = RequestMethod.valueOf(requestMethodString);
 
             //first Line Request
             byte[] body = null;
             String contentType = null;
             switch (requestMethod){
-                case "GET" :
-
+                case GET:
                     String pathOnly = null;
                     if(requestUri.indexOf('?') != -1) {
                         pathOnly = requestUri.substring(0,requestUri.indexOf('?')-1);
@@ -63,7 +65,7 @@ public class RequestHandler extends Thread {
                         log.info("userData : {}", newUser);
                     }
                     try {
-                        File responseFile = new File("./webapp" + pathOnly != null ?  pathOnly : requestUri);
+                        File responseFile = new File("./webapp" + (pathOnly != null ?  pathOnly : requestUri));
                         body = Files.readAllBytes(responseFile.toPath());
                         contentType = contentTypeParser(responseFile.toPath());
                     } catch (NoSuchFileException e){
@@ -78,10 +80,10 @@ public class RequestHandler extends Thread {
 
                     response200Header(dos, body.length, contentType);
                     break;
-                case "POST" :
-                case "PUT" :
-                case "PATCH" :
-                case "DELETE" :
+                case POST :
+                case PUT :
+                case PATCH :
+                case DELETE :
                 default:
                     String notFoundText = "not Support Method";
                     body = notFoundText.getBytes();
@@ -97,7 +99,6 @@ public class RequestHandler extends Thread {
             log.info("RequestData\n{}", requestData);
         } catch (Exception e) {
             log.error(e.getMessage());
-//            log.error("data = {}", e.getStackTrace());
         }
     }
 
