@@ -2,6 +2,7 @@ package webserver;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -37,9 +38,9 @@ public class RequestHandler extends Thread {
 
             // ex : GET index.html/ HTTP/1.1
             final String requestMethodString = requestFirstLines[0];
-            final String requestUri = requestFirstLines[1];
+            final URI requestUri = URI.create(requestFirstLines[1]);
             final String requestProtocol = requestFirstLines[2];
-
+            final String pathOnly = requestUri.getPath();
             RequestMethod requestMethod = RequestMethod.valueOf(requestMethodString);
 
             //first Line Request
@@ -47,10 +48,8 @@ public class RequestHandler extends Thread {
             String contentType = null;
             switch (requestMethod){
                 case GET:
-                    String pathOnly = null;
-                    if(requestUri.indexOf('?') != -1) {
-                        pathOnly = requestUri.substring(0,requestUri.indexOf('?')-1);
-                        final String queryString = requestUri.substring(requestUri.indexOf('?'));
+                    if(requestUri.getQuery() != null){
+                        final String queryString = requestUri.getQuery();
                         final String[] parameters = queryString.split("&");
 
                         Map<String, String> queryStringParsedData = HttpRequestUtils.parseQueryString(queryString);
@@ -65,7 +64,7 @@ public class RequestHandler extends Thread {
                         log.info("userData : {}", newUser);
                     }
                     try {
-                        File responseFile = new File("./webapp" + (pathOnly != null ?  pathOnly : requestUri));
+                        File responseFile = new File("./webapp" + pathOnly);
                         body = Files.readAllBytes(responseFile.toPath());
                         contentType = contentTypeParser(responseFile.toPath());
                     } catch (NoSuchFileException e){
