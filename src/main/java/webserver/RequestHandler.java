@@ -3,12 +3,9 @@ package webserver;
 import java.io.*;
 import java.net.Socket;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
-import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.IOUtils;
@@ -45,23 +42,37 @@ public class RequestHandler extends Thread {
             final URI requestUri = URI.create(requestFirstLines[1]);
             final String requestProtocol = requestFirstLines[2];
 
-//            IOUtils.readData(reader, );
-
+            Map<String, String> headers = new LinkedHashMap<>();
             RequestMethod requestMethod = RequestMethod.valueOf(requestMethodString);
+            requestData.append(requestFirstLines[0]).append(" ").append(requestFirstLines[1]).append(" ").append(requestFirstLines[2]).append("\n");
             while ((line = reader.readLine()) != null && !line.isEmpty()) {
+                HttpRequestUtils.Pair p = HttpRequestUtils.parseHeader(line);
+
+                if(p != null){
+                    headers.put(p.getKey().toLowerCase(), p.getValue());
+                }
+
                 requestData.append(line).append("\n");
             }
-            requestData.append(requestFirstLines[0]).append(" ").append(requestFirstLines[1]).append(" ").append(requestFirstLines[2]).append("\n");
+            //requestBody 직전까지 파싱
+
+            String body = "";
+            String cl = headers.get("content-length");
+            int contentLength = 0;
+
+            if(cl != null){
+                contentLength = Integer.parseInt(cl);
+            }
+
+            if (contentLength > 0) {
+                body = IOUtils.readData(reader, contentLength);
+            }
+
             log.info("RequestData\n{}", requestData);
 
-            String body = null;
             RequestData data = new RequestData(dos, requestUri, body, requestMethod);
             RequestProcessor processor = RequestProcessor.getProcessor(data.method());
             processor.processing(data);
-            
-            //입력 값 로깅
-
-
 
         } catch (Exception e) {
             log.error(e.getMessage());

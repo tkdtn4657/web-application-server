@@ -26,10 +26,10 @@ public class PostRequestProcessor implements RequestProcessor{
         final URI uri = data.requestURI();
         final String pathOnly = uri.getPath();
         final DataOutputStream dos = data.dos();
+        final String requestBody = data.requestBody();
 
-        if(uri.getQuery() != null){
-            final String queryString = uri.getQuery();
-            Map<String, String> queryStringParsedData = HttpRequestUtils.parseQueryString(queryString);
+        if(!requestBody.isEmpty()){
+            Map<String, String> queryStringParsedData = HttpRequestUtils.parseQueryString(requestBody);
 
             User newUser = new User(
                     queryStringParsedData.get("userId"),
@@ -41,18 +41,8 @@ public class PostRequestProcessor implements RequestProcessor{
             log.info("userData : {}", newUser);
         }
 
-        byte[] body = null;
-        String contentType = null;
-        try {
-            File responseFile = new File("./webapp" + pathOnly);
-            body = Files.readAllBytes(responseFile.toPath());
-        } catch (IOException e) {
-            String notFoundText = "notFound";
-            body = notFoundText.getBytes();
-            response404Header(dos, body.length);
-            responseBody(dos, body);
-            return;
-        }
+        byte[] body = "success".getBytes();
+        String contentType = "text/html";
         response200Header(dos, body.length, contentType);
         responseBody(dos, body);
     }
