@@ -1,10 +1,11 @@
 package webserver.http.handler;
 
 import java.io.DataOutputStream;
+import java.net.URI;
 
 public interface RequestProcessor {
 
-    public void processing(DataOutputStream dataOutputStream);
+    void processing(DataOutputStream dataOutputStream, URI requestUri);
 
     static RequestProcessor getProcessor(RequestMethod method){
         switch(method){
