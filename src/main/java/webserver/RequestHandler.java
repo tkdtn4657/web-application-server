@@ -11,6 +11,8 @@ import java.util.Map;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.IOUtils;
+import webserver.http.RequestData;
 import webserver.http.handler.RequestMethod;
 import util.HttpRequestUtils;
 import webserver.http.handler.RequestProcessor;
@@ -43,17 +45,22 @@ public class RequestHandler extends Thread {
             final URI requestUri = URI.create(requestFirstLines[1]);
             final String requestProtocol = requestFirstLines[2];
 
-            RequestMethod requestMethod = RequestMethod.valueOf(requestMethodString);
+//            IOUtils.readData(reader, );
 
-            RequestProcessor processor = RequestProcessor.getProcessor(requestMethod);
-            processor.processing(dos, requestUri);
-            
-            //입력 값 로깅
+            RequestMethod requestMethod = RequestMethod.valueOf(requestMethodString);
             while ((line = reader.readLine()) != null && !line.isEmpty()) {
                 requestData.append(line).append("\n");
             }
             requestData.append(requestFirstLines[0]).append(" ").append(requestFirstLines[1]).append(" ").append(requestFirstLines[2]).append("\n");
             log.info("RequestData\n{}", requestData);
+
+            String body = null;
+            RequestData data = new RequestData(dos, requestUri, body, requestMethod);
+            RequestProcessor processor = RequestProcessor.getProcessor(data.method());
+            processor.processing(data);
+            
+            //입력 값 로깅
+
 
 
         } catch (Exception e) {

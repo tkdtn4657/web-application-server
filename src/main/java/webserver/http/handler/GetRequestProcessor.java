@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
 import webserver.RequestHandler;
+import webserver.http.RequestData;
 
 import java.io.DataOutputStream;
 import java.io.File;
@@ -21,12 +22,14 @@ class GetRequestProcessor implements RequestProcessor{
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 
     @Override
-    public void processing(DataOutputStream dos, URI requestUri) {
+    public void processing(RequestData data) {
 
-        final String pathOnly = requestUri.getPath();
+        final URI uri = data.requestURI();
+        final String pathOnly = uri.getPath();
+        final DataOutputStream dos = data.dos();
 
-        if(requestUri.getQuery() != null){
-            final String queryString = requestUri.getQuery();
+        if(data.requestURI().getQuery() != null){
+            final String queryString = data.requestURI().getQuery();
             Map<String, String> queryStringParsedData = HttpRequestUtils.parseQueryString(queryString);
 
             User newUser = new User(
