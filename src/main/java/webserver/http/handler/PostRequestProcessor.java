@@ -43,7 +43,7 @@ public class PostRequestProcessor implements RequestProcessor{
 
         byte[] body = "success".getBytes();
         String contentType = "text/html";
-        response200Header(dos, body.length, contentType);
+        response302Header(dos, body.length, contentType);
         responseBody(dos, body);
     }
 }
