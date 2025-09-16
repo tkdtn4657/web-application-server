@@ -4,6 +4,7 @@ import db.DataBase;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.Cookie;
 import util.HttpRequestUtils;
 import webserver.RequestHandler;
 import webserver.http.RequestData;
@@ -34,6 +35,7 @@ public class PostRequestProcessor implements RequestProcessor{
             queryStringParsedData = HttpRequestUtils.parseQueryString(requestBody);
         }
 
+        String contentType = "text/html";
         switch (uri.toString()){
             case "/user/create" :
                 User newUser = new User(
@@ -50,14 +52,32 @@ public class PostRequestProcessor implements RequestProcessor{
                     log.error("user add error");
                 }
 
+                response302Header(dos, "success".getBytes().length, contentType, "/index.html", Cookie.notAvailableCookie());
+                break;
+            case "/user/login" :
+                String userId = queryStringParsedData.get("userId");
+                String userInputPassword = queryStringParsedData.get("password");
+
+                User findUser = DataBase.findUserById(userId);
+
+                if(findUser == null){
+                    log.error("user find error");
+                    response404Header(dos, "success".getBytes().length);
+                    return;
+                }
+                if(findUser.getPassword().equals(userInputPassword)){
+                    byte[] body = "loginSuccess".getBytes();
+                    response302Header(dos, "success".getBytes().length, contentType, "/index.html", Cookie.availableCookie("logined", "true"));
+                } else {
+                    byte[] body = "loginFail".getBytes();
+                    response302Header(dos, "success".getBytes().length, contentType, "/user/login_failed.html", Cookie.availableCookie("logined", "false"));
+                }
                 break;
             default:
                 break;
         }
 
         byte[] body = "success".getBytes();
-        String contentType = "text/html";
-        response302Header(dos, body.length, contentType);
         responseBody(dos, body);
     }
 }
