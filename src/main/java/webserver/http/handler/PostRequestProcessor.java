@@ -1,5 +1,6 @@
 package webserver.http.handler;
 
+import db.DataBase;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,17 +29,24 @@ public class PostRequestProcessor implements RequestProcessor{
         final DataOutputStream dos = data.dos();
         final String requestBody = data.requestBody();
 
+        Map<String, String> queryStringParsedData = null;
         if(!requestBody.isEmpty()){
-            Map<String, String> queryStringParsedData = HttpRequestUtils.parseQueryString(requestBody);
+            queryStringParsedData = HttpRequestUtils.parseQueryString(requestBody);
+        }
 
-            User newUser = new User(
-                    queryStringParsedData.get("userId"),
-                    queryStringParsedData.get("password"),
-                    queryStringParsedData.get("name"),
-                    queryStringParsedData.get("email")
-            );
+        switch (uri.toString()){
+            case "/user/create" :
+                User newUser = new User(
+                        queryStringParsedData.get("userId"),
+                        queryStringParsedData.get("password"),
+                        queryStringParsedData.get("name"),
+                        queryStringParsedData.get("email")
+                );
 
-            log.info("userData : {}", newUser);
+                log.info("userData : {}", newUser);
+                break;
+            default:
+                break;
         }
 
         byte[] body = "success".getBytes();
