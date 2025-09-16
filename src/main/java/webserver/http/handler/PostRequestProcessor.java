@@ -44,6 +44,12 @@ public class PostRequestProcessor implements RequestProcessor{
                 );
 
                 log.info("userData : {}", newUser);
+                try{
+                    DataBase.addUser(newUser);
+                } catch(Exception e) {
+                    log.error("user add error");
+                }
+
                 break;
             default:
                 break;
