@@ -10,10 +10,7 @@ import webserver.RequestHandler;
 import webserver.http.RequestData;
 
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
 import java.util.Map;
 
 import static util.HttpRequestUtils.*;

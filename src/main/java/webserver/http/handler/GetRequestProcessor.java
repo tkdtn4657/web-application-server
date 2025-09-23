@@ -1,9 +1,10 @@
 package webserver.http.handler;
 
+import db.DataBase;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.HttpRequestUtils;
+import util.Cookie;
 import webserver.RequestHandler;
 import webserver.http.RequestData;
 
@@ -13,7 +14,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
+import java.util.Collection;
 
 import static util.HttpRequestUtils.*;
 
@@ -28,34 +29,42 @@ class GetRequestProcessor implements RequestProcessor{
         final String pathOnly = uri.getPath();
         final DataOutputStream dos = data.dos();
 
-        if(data.requestURI().getQuery() != null){
-            final String queryString = data.requestURI().getQuery();
-            Map<String, String> queryStringParsedData = HttpRequestUtils.parseQueryString(queryString);
-
-            User newUser = new User(
-                    queryStringParsedData.get("userId"),
-                    queryStringParsedData.get("password"),
-                    queryStringParsedData.get("name"),
-                    queryStringParsedData.get("email")
-            );
-
-            log.info("userData : {}", newUser);
-        }
-
         byte[] body = null;
         String contentType = null;
-        try {
-            File responseFile = new File("./webapp" + pathOnly);
-            body = Files.readAllBytes(responseFile.toPath());
-            contentType = contentTypeParser(responseFile.toPath());
-        } catch (IOException e) {
-            String notFoundText = "notFound";
-            body = notFoundText.getBytes();
-            response404Header(dos, body.length);
-            responseBody(dos, body);
-            return;
+        switch (uri.toString()){
+            case "/user/list" :
+                if(data.logined()){
+                    Collection<User> users = DataBase.findAll();
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("<table border='1'>");
+                    for (User user : users) {
+                        sb.append("<tr>");
+                        sb.append("<td>" + user.getUserId() + "</td>");
+                        sb.append("<td>" + user.getName() + "</td>");
+                        sb.append("<td>" + user.getEmail() + "</td>");
+                        sb.append("</tr>");
+                    }
+                    sb.append("</table>");
+                    body = sb.toString().getBytes();
+                    response200Header(dos, body.length, contentType);
+                } else {
+                    response302Header(dos, "success".getBytes().length, contentType, "/login.html", Cookie.availableCookie("logined", "false"));
+                }
+                break;
+            default:
+                try {
+                    File responseFile = new File("./webapp" + pathOnly);
+                    body = Files.readAllBytes(responseFile.toPath());
+                    contentType = contentTypeParser(responseFile.toPath());
+                    response200Header(dos, body.length, contentType);
+                } catch (IOException e) {
+                    String notFoundText = "notFound";
+                    body = notFoundText.getBytes();
+                    response404Header(dos, body.length);
+                    responseBody(dos, body);
+                    return;
+                }
         }
-        response200Header(dos, body.length, contentType);
         responseBody(dos, body);
     }
 

@@ -9,5 +9,6 @@ public record RequestData (
         DataOutputStream dos,
         URI requestURI,
         String requestBody,
-        RequestMethod method){
+        RequestMethod method,
+        boolean logined){
 }

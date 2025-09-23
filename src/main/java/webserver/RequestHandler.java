@@ -45,11 +45,18 @@ public class RequestHandler extends Thread {
             Map<String, String> headers = new LinkedHashMap<>();
             RequestMethod requestMethod = RequestMethod.valueOf(requestMethodString);
             requestData.append(requestFirstLines[0]).append(" ").append(requestFirstLines[1]).append(" ").append(requestFirstLines[2]).append("\n");
+            boolean logined = false;
             while ((line = reader.readLine()) != null && !line.isEmpty()) {
-                HttpRequestUtils.Pair p = HttpRequestUtils.parseHeader(line);
-
-                if(p != null){
-                    headers.put(p.getKey().toLowerCase(), p.getValue());
+                if(line.contains("Cookie")){
+                    Map<String, String> cookies = HttpRequestUtils.parseCookies(line);
+                    if(cookies.getOrDefault("logined", "false").equals("true")) {
+                        logined = true;
+                    }
+                } else {
+                    HttpRequestUtils.Pair p = HttpRequestUtils.parseHeader(line);
+                    if (p != null) {
+                        headers.put(p.getKey().toLowerCase(), p.getValue());
+                    }
                 }
 
                 requestData.append(line).append("\n");
@@ -70,7 +77,7 @@ public class RequestHandler extends Thread {
 
             log.info("RequestData\n{}", requestData);
 
-            RequestData data = new RequestData(dos, requestUri, body, requestMethod);
+            RequestData data = new RequestData(dos, requestUri, body, requestMethod, logined);
             RequestProcessor processor = RequestProcessor.getProcessor(data.method());
             processor.processing(data);
 
