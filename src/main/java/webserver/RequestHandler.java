@@ -31,6 +31,7 @@ public class RequestHandler extends Thread {
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             DataOutputStream dos = new DataOutputStream(out);
+//            RequestData requestData = HttpRequest.requestDataParser(in);
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
             StringBuilder requestData = new StringBuilder();
 
@@ -77,7 +78,7 @@ public class RequestHandler extends Thread {
 
             log.info("RequestData\n{}", requestData);
 
-            RequestData data = new RequestData(dos, requestUri, body, requestMethod, logined);
+            RequestData data = new RequestData(dos, requestUri, body, requestMethod, logined, headers);
             RequestProcessor processor = RequestProcessor.getProcessor(data.method());
             processor.processing(data);
 
