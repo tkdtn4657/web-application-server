@@ -10,12 +10,15 @@ public interface RequestProcessor {
     void processing(RequestData data);
 
     static RequestProcessor getProcessor(RequestMethod method){
+        RequestProcessor processor = null;
         switch(method){
             case GET:
-                return new GetRequestProcessor();
+                processor = new GetRequestProcessor();
+                break;
             case POST:
-                return new PostRequestProcessor();
+                processor = new PostRequestProcessor();
+                break;
         }
-        return null;
+        return processor;
     }
 }

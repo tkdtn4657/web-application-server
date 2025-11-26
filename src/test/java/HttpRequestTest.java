@@ -15,7 +15,7 @@ public class HttpRequestTest {
     @Test
     public void request_GET() throws Exception {
         InputStream in = new FileInputStream(new File(testDirectory + "Http_GET.txt"));
-        HttpRequest request = new HttpRequest(in);
+        HttpRequest request = new HttpRequest(in, null);
 
         assertEquals("GET", request.getReqData().method().toString());
         assertEquals("/user/create", request.getReqData().requestURI().getPath());

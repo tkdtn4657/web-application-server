@@ -13,16 +13,16 @@ public class HttpRequest {
 
     final RequestData reqData;
 
-    public HttpRequest(InputStream in) throws IOException {
-        this.reqData = requestDataParser(in);
+    public HttpRequest(InputStream in, OutputStream out) throws IOException {
+        this.reqData = requestDataParser(in, out);
     }
 
     public RequestData getReqData() {
         return reqData;
     }
 
-    public static RequestData requestDataParser(InputStream in) throws IOException {
-        DataOutputStream dos = new DataOutputStream(OutputStream.nullOutputStream());
+    public static RequestData requestDataParser(InputStream in, OutputStream out) throws IOException {
+        DataOutputStream dos = new DataOutputStream(out);
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
         StringBuilder requestData = new StringBuilder();
 
