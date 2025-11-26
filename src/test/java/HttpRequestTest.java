@@ -22,4 +22,16 @@ public class HttpRequestTest {
         assertEquals("keep-alive", request.getReqData().headers().get("connection"));
         assertEquals("javajigi", HttpRequestUtils.parseQueryString(request.getReqData().requestURI().getQuery()).get("userId"));
     }
+
+    @Test
+    public void request_POST() throws Exception {
+        InputStream in = new FileInputStream(new File(testDirectory + "Http_POST.txt"));
+        HttpRequest request = new HttpRequest(in, null);
+
+        assertEquals("POST", request.getReqData().method().toString());
+        assertEquals("/user/create", request.getReqData().requestURI().getPath());
+        assertEquals("keep-alive", request.getReqData().headers().get("connection"));
+        assertEquals("javajigi", HttpRequestUtils.parseQueryString(request.getReqData().requestBody()).get("userId"));
+    }
+
 }
