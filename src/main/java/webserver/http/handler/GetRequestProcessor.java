@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.Cookie;
 import webserver.RequestHandler;
+import webserver.http.HttpResponse;
 import webserver.http.RequestData;
 
 import java.io.DataOutputStream;
@@ -28,6 +29,7 @@ class GetRequestProcessor implements RequestProcessor{
         final URI uri = data.requestURI();
         final String pathOnly = uri.getPath();
         final DataOutputStream dos = data.dos();
+        final HttpResponse httpResponse = new HttpResponse(dos);
 
         byte[] body = null;
         String contentType = null;
@@ -46,9 +48,9 @@ class GetRequestProcessor implements RequestProcessor{
                     }
                     sb.append("</table>");
                     body = sb.toString().getBytes();
-                    response200Header(dos, body.length, contentType);
+                    HttpResponse.response200Header(dos, body.length, contentType);
                 } else {
-                    response302Header(dos, "success".getBytes().length, contentType, "/login.html", Cookie.availableCookie("logined", "false"));
+                    HttpResponse.response302Header(dos, "success".getBytes().length, contentType, "/login.html", Cookie.availableCookie("logined", "false"));
                 }
                 break;
             default:
@@ -56,16 +58,16 @@ class GetRequestProcessor implements RequestProcessor{
                     File responseFile = new File("./webapp" + pathOnly);
                     body = Files.readAllBytes(responseFile.toPath());
                     contentType = contentTypeParser(responseFile.toPath());
-                    response200Header(dos, body.length, contentType);
+                    HttpResponse.response200Header(dos, body.length, contentType);
                 } catch (IOException e) {
                     String notFoundText = "notFound";
                     body = notFoundText.getBytes();
-                    response404Header(dos, body.length);
-                    responseBody(dos, body);
+                    HttpResponse.response404Header(dos, body.length);
+                    HttpResponse.responseBody(dos, body);
                     return;
                 }
         }
-        responseBody(dos, body);
+        HttpResponse.responseBody(dos, body);
     }
 
     private static String contentTypeParser(Path path) {

@@ -2,6 +2,7 @@ package webserver.http;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.Cookie;
 import webserver.RequestHandler;
 
 import java.io.DataOutputStream;
@@ -23,6 +24,10 @@ public class HttpResponse {
 
     public HttpResponse(OutputStream outputStream){
         this.outputStream = new DataOutputStream(outputStream);
+    }
+
+    public HttpResponse(DataOutputStream outputStream){
+        this.outputStream = outputStream;
     }
 
     //직접 파일을 반환하는 메서드 이동
@@ -107,5 +112,41 @@ public class HttpResponse {
         }
     }
 
+    public static void response200Header(DataOutputStream dos, int lengthOfBodyContent, String contentType) {
+        try {
+            dos.writeBytes("HTTP/1.1 200 OK \r\n");
+            dos.writeBytes("Content-Type: " + contentType + ";charset=utf-8\r\n");
+            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    public static void response302Header(DataOutputStream dos, int lengthOfBodyContent, String contentType, String location, Cookie cookie) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Found \r\n");
+            dos.writeBytes("Location: " + location + "\r\n");
+            dos.writeBytes("Content-Type: " + contentType + ";charset=utf-8\r\n");
+            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            if(cookie.isAvailableCookie()){
+                dos.writeBytes("Set-Cookie: " + cookie.getCookieKey() + "=" + cookie.getCookieValue() + "; Path=/;\r\n");
+            }
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    public static void response404Header(DataOutputStream dos, int lengthOfBodyContent){
+        try {
+            dos.writeBytes("HTTP/1.1 404 ERROR \r\n");
+            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
 
 }

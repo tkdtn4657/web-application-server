@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import util.Cookie;
 import util.HttpRequestUtils;
 import webserver.RequestHandler;
+import webserver.http.HttpResponse;
 import webserver.http.RequestData;
 
 import java.io.DataOutputStream;
@@ -26,6 +27,7 @@ public class PostRequestProcessor implements RequestProcessor{
         final String pathOnly = uri.getPath();
         final DataOutputStream dos = data.dos();
         final String requestBody = data.requestBody();
+        final HttpResponse httpResponse = new HttpResponse(dos);
 
         Map<String, String> queryStringParsedData = null;
         if(!requestBody.isEmpty()){
@@ -49,7 +51,7 @@ public class PostRequestProcessor implements RequestProcessor{
                     log.error("user add error");
                 }
 
-                response302Header(dos, "success".getBytes().length, contentType, "/index.html", Cookie.notAvailableCookie());
+                HttpResponse.response302Header(dos, "success".getBytes().length, contentType, "/index.html", Cookie.notAvailableCookie());
                 break;
             case "/user/login" :
                 String userId = queryStringParsedData.get("userId");
@@ -59,15 +61,15 @@ public class PostRequestProcessor implements RequestProcessor{
 
                 if(findUser == null){
                     log.error("user find error");
-                    response404Header(dos, "success".getBytes().length);
+                    HttpResponse.response404Header(dos, "success".getBytes().length);
                     return;
                 }
                 if(findUser.getPassword().equals(userInputPassword)){
                     byte[] body = "loginSuccess".getBytes();
-                    response302Header(dos, "success".getBytes().length, contentType, "/index.html", Cookie.availableCookie("logined", "true"));
+                    HttpResponse.response302Header(dos, "success".getBytes().length, contentType, "/index.html", Cookie.availableCookie("logined", "true"));
                 } else {
                     byte[] body = "loginFail".getBytes();
-                    response302Header(dos, "success".getBytes().length, contentType, "/user/login_failed.html", Cookie.availableCookie("logined", "false"));
+                    HttpResponse.response302Header(dos, "success".getBytes().length, contentType, "/user/login_failed.html", Cookie.availableCookie("logined", "false"));
                 }
                 break;
             default:
@@ -75,6 +77,6 @@ public class PostRequestProcessor implements RequestProcessor{
         }
 
         byte[] body = "success".getBytes();
-        responseBody(dos, body);
+        HttpResponse.responseBody(dos, body);
     }
 }
