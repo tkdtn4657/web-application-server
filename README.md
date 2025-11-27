@@ -49,7 +49,12 @@
 * Cookie를 직접 가져와 로그인 유무 확인 및 데이터 활용하는 방식으로 user list를 보여주는 로직을 구현 GetRequestProcessor로 로그인 여부를 넘겨줬다.
 
 ### 요구사항 6 - stylesheet 적용
-* 
+*  이미 적용됨
+
+### 요구사항 7 - HttpRequest, HttpResponse 객체 생성 후 테스트
+* 코드 복잡도를 낮추기 위해 RequestHandler의 책임을 줄여줌.
+* Handler의 책임을 줄여주기 위해 먼저 테스트 코드를 구성하여, HttpRequest, HttpResponse 객체를 생성했습니다.
+* 테스트가 완료되면 Handler에 직접 두 객체를 도입하는 것이 최종 목표입니다.
 
 ### heroku 서버에 배포 후
 * 
